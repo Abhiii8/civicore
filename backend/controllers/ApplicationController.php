@@ -318,16 +318,22 @@ class ApplicationController {
         // Generate certificate path (placeholder - in production, generate actual PDF)
         $certificatePath = 'certificates/' . $id . '_' . time() . '.pdf';
 
+        // Get certificate type and value if provided
+        $certificateType = $data['certificate_type'] ?? null;
+        $certificateValue = $data['certificate_value'] ?? null;
+
         // Update application
         $updateStmt = $this->db->prepare("
             UPDATE applications 
-            SET status = ?, approved_date = NOW(), remarks = ?, certificate_path = ?
+            SET status = ?, approved_date = NOW(), remarks = ?, certificate_path = ?, certificate_type = ?, certificate_value = ?
             WHERE id = ?
         ");
         $updateStmt->execute([
             $newStatus,
             $data['remarks'] ?? 'Application approved',
             $certificatePath,
+            $certificateType,
+            $certificateValue,
             $id
         ]);
 

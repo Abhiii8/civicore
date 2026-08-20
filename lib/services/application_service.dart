@@ -147,11 +147,15 @@ class ApplicationService {
   }
   
   // Approve application
-  Future<Map<String, dynamic>> approveApplication(int id, {String? remarks}) async {
+  Future<Map<String, dynamic>> approveApplication(int id, {String? remarks, String? certificateType, String? certificateValue}) async {
     try {
       final response = await _apiClient.post(
         '${ApiConstants.approveApplication}/$id/approve',
-        data: {'remarks': remarks ?? 'Application approved'},
+        data: {
+          'remarks': remarks ?? 'Application approved',
+          'certificate_type': certificateType,
+          'certificate_value': certificateValue,
+        },
       );
       return response.data;
     } catch (e) {

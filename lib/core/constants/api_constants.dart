@@ -3,12 +3,14 @@
 /// Centralized API endpoint configuration
 /// Supports easy environment switching (dev/prod)
 
+import 'package:flutter/foundation.dart';
+
 class ApiConstants {
   // Base URL - Update this to your backend URL
-  // For Android Emulator: use http://10.0.2.2 (maps to host's localhost)
-  // For Physical Device: use http://YOUR_COMPUTER_IP (e.g., http://192.168.1.100)
-  // For Windows Desktop: use http://localhost
-  static const String baseUrl = 'http://10.0.2.2/civicore/backend';
+  // Automatically handles Web (localhost) vs Android Emulator (10.0.2.2)
+  static const String baseUrl = kIsWeb 
+      ? 'http://localhost/civicore/backend' 
+      : 'http://10.0.2.2/civicore/backend';
   
   // API Endpoints
   static const String login = '/api/auth/login';

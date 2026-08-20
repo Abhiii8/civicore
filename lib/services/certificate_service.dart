@@ -8,6 +8,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import '../models/application_model.dart';
+import '../utils/certificate_type_helper.dart';
 import 'package:printing/printing.dart';
 
 class CertificateService {
@@ -159,6 +160,65 @@ class CertificateService {
                           letterSpacing: 1,
                         ),
                       ),
+                      // Certificate Type (if specified)
+                      if (application.certificateType != null && application.certificateType!.isNotEmpty) ...[
+                        pw.SizedBox(height: 15),
+                        pw.Text(
+                          'Type: ${application.certificateType}',
+                          style: pw.TextStyle(
+                            fontSize: 16,
+                            fontWeight: pw.FontWeight.normal,
+                            color: PdfColors.grey700,
+                            fontStyle: pw.FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                      // Certificate Value (if specified) - e.g., Income amount
+                      if (application.certificateValue != null && application.certificateValue!.isNotEmpty) ...[
+                        pw.SizedBox(height: 20),
+                        // Value in a highlighted box
+                        pw.Container(
+                          padding: const pw.EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          decoration: pw.BoxDecoration(
+                            color: PdfColors.blue50,
+                            border: pw.Border.all(
+                              color: PdfColors.blue700,
+                              width: 2,
+                            ),
+                            borderRadius: pw.BorderRadius.circular(8),
+                          ),
+                          child: pw.Column(
+                            children: [
+                              pw.Text(
+                                CertificateTypeHelper.getValueLabel(
+                                  application.serviceCode,
+                                  application.serviceName,
+                                ),
+                                style: pw.TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: pw.FontWeight.normal,
+                                  color: PdfColors.grey700,
+                                ),
+                              ),
+                              pw.SizedBox(height: 8),
+                              pw.Text(
+                                CertificateTypeHelper.formatValue(
+                                  application.serviceCode,
+                                  application.serviceName,
+                                  application.certificateValue!,
+                                ),
+                                style: pw.TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: pw.FontWeight.bold,
+                                  color: PdfColors.blue900,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        pw.SizedBox(height: 30),
+                      ],
                       pw.SizedBox(height: 50),
                       
                       // Details Box
@@ -178,6 +238,24 @@ class CertificateService {
                             pw.SizedBox(height: 12),
                             _buildDetailRow('Department', application.departmentName),
                             pw.SizedBox(height: 12),
+                            if (application.certificateType != null && application.certificateType!.isNotEmpty) ...[
+                              _buildDetailRow('Certificate Type', application.certificateType!),
+                              pw.SizedBox(height: 12),
+                            ],
+                            if (application.certificateValue != null && application.certificateValue!.isNotEmpty) ...[
+                              _buildDetailRow(
+                                CertificateTypeHelper.getValueLabel(
+                                  application.serviceCode,
+                                  application.serviceName,
+                                ),
+                                CertificateTypeHelper.formatValue(
+                                  application.serviceCode,
+                                  application.serviceName,
+                                  application.certificateValue!,
+                                ),
+                              ),
+                              pw.SizedBox(height: 12),
+                            ],
                             _buildDetailRow(
                               'Date of Issue',
                               _formatDate(application.approvedDate ?? DateTime.now()),

@@ -1,0 +1,137 @@
+@startuml CiviCore_Sequence_Diagram
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam sequence {
+    ArrowColor #1976D2
+    LifeLineBorderColor #1976D2
+    LifeLineBackgroundColor #E3F2FD
+    ParticipantBorderColor #1976D2
+    ParticipantBackgroundColor #E3F2FD
+}
+
+title CiviCore - Application Submission and Approval Sequence
+
+actor "Citizen" as Citizen
+participant "Flutter App" as App
+participant "AuthService" as Auth
+participant "ApplicationService" as AppService
+participant "API Client" as API
+participant "Backend API" as Backend
+participant "AuthController" as AuthCtrl
+participant "ApplicationController" as AppCtrl
+participant "Database" as DB
+
+== User Login ==
+Citizen -> App: Enter credentials
+App -> Auth: login(email, password)
+Auth -> API: POST /api/auth/login
+API -> Backend: HTTP Request
+Backend -> AuthCtrl: login()
+AuthCtrl -> DB: SELECT user WHERE email
+DB --> AuthCtrl: User data
+AuthCtrl -> DB: Verify password (bcrypt)
+AuthCtrl -> AuthCtrl: Generate JWT token
+AuthCtrl -> DB: INSERT audit_log
+AuthCtrl --> Backend: {success, token, user}
+Backend --> API: JSON Response
+API --> Auth: Response data
+Auth -> App: Store token locally
+Auth --> App: UserModel
+App --> Citizen: Show dashboard
+
+== Application Submission ==
+Citizen -> App: Select service and apply
+App -> AppService: createApplication(serviceId)
+AppService -> API: POST /api/applications\nAuthorization: Bearer token
+API -> Backend: HTTP Request with JWT
+Backend -> Backend: Validate JWT token
+Backend -> AppCtrl: createApplication()
+AppCtrl -> DB: Generate application_number
+AppCtrl -> DB: INSERT application\n(status='pending')
+DB --> AppCtrl: application_id
+AppCtrl -> DB: INSERT application_log
+AppCtrl -> DB: INSERT audit_log
+AppCtrl --> Backend: {success, application_id}
+Backend --> API: JSON Response
+API --> AppService: Response data
+AppService --> App: ApplicationModel
+App --> Citizen: Show success message
+
+== Document Upload ==
+Citizen -> App: Upload document
+App -> AppService: uploadDocument(applicationId, file)
+AppService -> API: POST /api/documents/upload\nFormData
+API -> Backend: Multipart request
+Backend -> Backend: Validate file type/size
+Backend -> Backend: Save file to uploads/
+Backend -> DB: INSERT application_document
+DB --> Backend: document_id
+Backend --> API: {success, document_id}
+API --> AppService: Response
+AppService --> App: Success
+App --> Citizen: Document uploaded
+
+== Officer Review ==
+participant "Officer" as Officer
+participant "Officer App" as OfficerApp
+
+Officer -> OfficerApp: Login
+OfficerApp -> OfficerApp: View assigned applications
+OfficerApp -> API: GET /api/applications/assigned
+API -> Backend: Request with JWT
+Backend -> AppCtrl: getAssignedApplications()
+AppCtrl -> DB: SELECT applications\nWHERE officer_id = ?
+DB --> AppCtrl: Applications list
+AppCtrl --> Backend: JSON data
+Backend --> API: Response
+API --> OfficerApp: Applications
+OfficerApp --> Officer: Display list
+
+Officer -> OfficerApp: Select application
+OfficerApp -> API: GET /api/applications/{id}
+API -> Backend: Request
+Backend -> AppCtrl: getApplication(id)
+AppCtrl -> DB: SELECT application + documents + logs
+DB --> AppCtrl: Full application data
+AppCtrl --> Backend: JSON
+Backend --> API: Response
+API --> OfficerApp: ApplicationModel
+OfficerApp --> Officer: Show details
+
+== Application Approval ==
+Officer -> OfficerApp: Approve application
+OfficerApp -> API: POST /api/applications/{id}/approve\n{remarks: "..."}
+API -> Backend: Request
+Backend -> AppCtrl: approveApplication(id)
+AppCtrl -> DB: UPDATE application\nSET status='approved',\napproved_date=NOW()
+AppCtrl -> AppCtrl: Generate certificate_path
+AppCtrl -> DB: INSERT application_log
+AppCtrl -> DB: INSERT audit_log
+AppCtrl --> Backend: {success, certificate_path}
+Backend --> API: Response
+API --> OfficerApp: Success
+OfficerApp --> Officer: Application approved
+
+== Citizen Views Status ==
+Citizen -> App: View my applications
+App -> AppService: getMyApplications()
+AppService -> API: GET /api/applications/my-applications
+API -> Backend: Request
+Backend -> AppCtrl: getMyApplications()
+AppCtrl -> DB: SELECT applications\nWHERE citizen_id = ?
+DB --> AppCtrl: Applications
+AppCtrl --> Backend: JSON
+Backend --> API: Response
+API --> AppService: List<ApplicationModel>
+AppService --> App: Applications
+App --> Citizen: Show status: "Approved"
+
+== Certificate Download ==
+Citizen -> App: Download certificate
+App -> App: Generate PDF certificate
+App -> CertificateService: generateCertificate(application)
+CertificateService -> CertificateService: Create PDF with template
+CertificateService --> App: PDF file
+App --> Citizen: Download/View certificate
+
+@enduml

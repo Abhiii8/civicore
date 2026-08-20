@@ -16,6 +16,8 @@ class ApplicationModel {
   final String? remarks;
   final String? rejectionReason;
   final String? certificatePath;
+  final String? certificateType;
+  final String? certificateValue;
   final DateTime appliedDate;
   final DateTime? reviewedDate;
   final DateTime? approvedDate;
@@ -36,6 +38,8 @@ class ApplicationModel {
     this.remarks,
     this.rejectionReason,
     this.certificatePath,
+    this.certificateType,
+    this.certificateValue,
     required this.appliedDate,
     this.reviewedDate,
     this.approvedDate,
@@ -50,12 +54,6 @@ class ApplicationModel {
         : int.tryParse(json['id']?.toString() ?? '0') ?? 0;
     
     // Handle dates safely
-    DateTime parseDate(dynamic dateValue) {
-      if (dateValue == null) throw FormatException('Date is null');
-      if (dateValue is DateTime) return dateValue;
-      return DateTime.parse(dateValue.toString());
-    }
-    
     DateTime? parseNullableDate(dynamic dateValue) {
       if (dateValue == null) return null;
       try {
@@ -88,6 +86,8 @@ class ApplicationModel {
       remarks: json['remarks']?.toString(),
       rejectionReason: json['rejection_reason']?.toString(),
       certificatePath: json['certificate_path']?.toString(),
+      certificateType: json['certificate_type']?.toString(),
+      certificateValue: json['certificate_value']?.toString(),
       appliedDate: parseNullableDate(json['applied_date']) ?? DateTime.now(),
       reviewedDate: parseNullableDate(json['reviewed_date']),
       approvedDate: parseNullableDate(json['approved_date']),

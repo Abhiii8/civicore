@@ -1,0 +1,146 @@
+@startuml CiviCore_UseCase_Diagram
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam usecase {
+    BackgroundColor #E1F5FE
+    BorderColor #01579B
+}
+skinparam actor {
+    BackgroundColor #FFF9C4
+    BorderColor #F57F17
+}
+
+title CiviCore E-Governance Platform - Use Case Diagram
+
+' Actors
+actor "Citizen" as Citizen
+actor "Government Officer" as Officer
+actor "System Administrator" as Admin
+
+' Citizen Use Cases
+rectangle "Citizen Module" {
+    usecase "Register Account" as UC1
+    usecase "Login" as UC2
+    usecase "Browse Services" as UC3
+    usecase "Search Services" as UC4
+    usecase "View Service Details" as UC5
+    usecase "Submit Application" as UC6
+    usecase "Upload Documents" as UC7
+    usecase "View My Applications" as UC8
+    usecase "Track Application Status" as UC9
+    usecase "View Application Timeline" as UC10
+    usecase "Download Certificate" as UC11
+    usecase "Submit Complaint" as UC12
+    usecase "Attach Photo to Complaint" as UC13
+    usecase "View Complaint Status" as UC14
+    usecase "Update Profile" as UC15
+    usecase "View Profile" as UC16
+}
+
+' Officer Use Cases
+rectangle "Officer Module" {
+    usecase "Login" as UC17
+    usecase "View Assigned Applications" as UC18
+    usecase "Filter Applications by Status" as UC19
+    usecase "View Application Details" as UC20
+    usecase "View Uploaded Documents" as UC21
+    usecase "Approve Application" as UC22
+    usecase "Reject Application" as UC23
+    usecase "Add Remarks" as UC24
+    usecase "View Application History" as UC25
+    usecase "View Assigned Complaints" as UC26
+    usecase "Update Complaint Status" as UC27
+    usecase "Add Complaint Resolution" as UC28
+}
+
+' Admin Use Cases
+rectangle "Admin Module" {
+    usecase "Login" as UC29
+    usecase "View Dashboard" as UC30
+    usecase "View Statistics" as UC31
+    usecase "View Charts and Analytics" as UC32
+    usecase "Manage Departments" as UC33
+    usecase "Create Department" as UC34
+    usecase "Update Department" as UC35
+    usecase "Manage Services" as UC36
+    usecase "Create Service" as UC37
+    usecase "Update Service" as UC38
+    usecase "Deactivate Service" as UC39
+    usecase "Manage Users" as UC40
+    usecase "Create Officer" as UC41
+    usecase "Update User" as UC42
+    usecase "Activate/Deactivate User" as UC43
+    usecase "View All Applications" as UC44
+    usecase "Assign Application to Officer" as UC45
+    usecase "View Audit Logs" as UC46
+    usecase "Manage Certificate Templates" as UC47
+    usecase "Configure Template Fields" as UC48
+}
+
+' Citizen Relationships
+Citizen --> UC1
+Citizen --> UC2
+Citizen --> UC3
+Citizen --> UC4
+Citizen --> UC5
+Citizen --> UC6
+Citizen --> UC7
+Citizen --> UC8
+Citizen --> UC9
+Citizen --> UC10
+Citizen --> UC11
+Citizen --> UC12
+Citizen --> UC13
+Citizen --> UC14
+Citizen --> UC15
+Citizen --> UC16
+
+' Officer Relationships
+Officer --> UC17
+Officer --> UC18
+Officer --> UC19
+Officer --> UC20
+Officer --> UC21
+Officer --> UC22
+Officer --> UC23
+Officer --> UC24
+Officer --> UC25
+Officer --> UC26
+Officer --> UC27
+Officer --> UC28
+
+' Admin Relationships
+Admin --> UC29
+Admin --> UC30
+Admin --> UC31
+Admin --> UC32
+Admin --> UC33
+Admin --> UC34
+Admin --> UC35
+Admin --> UC36
+Admin --> UC37
+Admin --> UC38
+Admin --> UC39
+Admin --> UC40
+Admin --> UC41
+Admin --> UC42
+Admin --> UC43
+Admin --> UC44
+Admin --> UC45
+Admin --> UC46
+Admin --> UC47
+Admin --> UC48
+
+' Include Relationships
+UC6 ..> UC7 : <<include>>
+UC9 ..> UC10 : <<include>>
+UC12 ..> UC13 : <<include>>
+UC20 ..> UC21 : <<include>>
+UC22 ..> UC24 : <<include>>
+UC23 ..> UC24 : <<include>>
+
+' Extend Relationships
+UC3 ..> UC4 : <<extend>>
+UC8 ..> UC9 : <<extend>>
+
+@enduml

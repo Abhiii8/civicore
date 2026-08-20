@@ -1,0 +1,219 @@
+@startuml CiviCore_Class_Diagram
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam class {
+    BackgroundColor #E3F2FD
+    BorderColor #1976D2
+    ArrowColor #1976D2
+}
+
+title CiviCore E-Governance Platform - Class Diagram
+
+' Backend PHP Classes
+package "Backend (PHP)" {
+    class Database {
+        -host: String
+        -db_name: String
+        -username: String
+        -password: String
+        -conn: PDO
+        +getConnection(): PDO
+    }
+    
+    class JWT {
+        -secret: String
+        -algorithm: String
+        +generateToken(payload: Array): String
+        +validateToken(token: String): Array
+        +decodeToken(token: String): Array
+    }
+    
+    class AuthMiddleware {
+        +requireAuth(): Array
+        +requireRole(roles: Array): Array
+        -validateToken(token: String): Boolean
+    }
+    
+    class AuthController {
+        -db: PDO
+        -jwt: JWT
+        +register(): void
+        +login(): void
+        -logAudit(): void
+    }
+    
+    class ApplicationController {
+        -db: PDO
+        +createApplication(): void
+        +getMyApplications(): void
+        +getApplication(id: Int): void
+        +getAssignedApplications(): void
+        +assignApplication(id: Int): void
+        +approveApplication(id: Int): void
+        +rejectApplication(id: Int): void
+        -logApplicationAction(): void
+    }
+    
+    class ServiceController {
+        -db: PDO
+        +getAllServices(): void
+        +getService(id: Int): void
+        +createService(): void
+        +updateService(id: Int): void
+    }
+    
+    class ComplaintController {
+        -db: PDO
+        +createComplaint(): void
+        +getMyComplaints(): void
+        +getComplaint(id: Int): void
+        +updateComplaintStatus(id: Int): void
+        +assignComplaint(id: Int): void
+    }
+    
+    class AdminController {
+        -db: PDO
+        +getDashboard(): void
+        +getDepartments(): void
+        +createDepartment(): void
+        +getUsers(): void
+        +createUser(): void
+        +updateUser(id: Int): void
+        +getAuditLogs(): void
+    }
+    
+    class DocumentController {
+        -db: PDO
+        +uploadDocument(): void
+        +getDocument(id: Int): void
+        +downloadDocument(id: Int): void
+    }
+}
+
+' Frontend Dart Classes
+package "Frontend (Flutter/Dart)" {
+    class ApiClient {
+        -dio: Dio
+        -baseUrl: String
+        +get(endpoint: String): Future<Response>
+        +post(endpoint: String, data: Dynamic): Future<Response>
+        +put(endpoint: String, data: Dynamic): Future<Response>
+        +delete(endpoint: String): Future<Response>
+        +postFormData(endpoint: String, formData: FormData): Future<Response>
+    }
+    
+    class AuthService {
+        -apiClient: ApiClient
+        +register(data: Map): Future<Map>
+        +login(email: String, password: String): Future<Map>
+        +logout(): Future<void>
+        +isLoggedIn(): Future<Boolean>
+        +getCurrentUser(): Future<UserModel>
+    }
+    
+    class ApplicationService {
+        -apiClient: ApiClient
+        +createApplication(serviceId: Int): Future<Map>
+        +getMyApplications(): Future<List<ApplicationModel>>
+        +getApplication(id: Int): Future<ApplicationModel>
+        +uploadDocument(applicationId: Int, file: File): Future<Map>
+    }
+    
+    class ServiceService {
+        -apiClient: ApiClient
+        +getAllServices(): Future<List<ServiceModel>>
+        +getService(id: Int): Future<ServiceModel>
+    }
+    
+    class ComplaintService {
+        -apiClient: ApiClient
+        +createComplaint(data: Map, photo: File): Future<Map>
+        +getMyComplaints(): Future<List<ComplaintModel>>
+        +getComplaint(id: Int): Future<ComplaintModel>
+    }
+    
+    class CertificateService {
+        +generateCertificate(application: ApplicationModel): Future<PDF>
+        +downloadCertificate(path: String): Future<void>
+    }
+}
+
+' Models
+package "Models" {
+    class UserModel {
+        +id: Int
+        +email: String
+        +fullName: String
+        +role: String
+        +roleId: Int
+        +department: Map
+        +phone: String
+        +fromJson(json: Map): UserModel
+        +toJson(): Map
+    }
+    
+    class ApplicationModel {
+        +id: Int
+        +applicationNumber: String
+        +status: String
+        +serviceName: String
+        +citizenName: String
+        +appliedDate: DateTime
+        +documents: List<Map>
+        +logs: List<Map>
+        +fromJson(json: Map): ApplicationModel
+        +statusDisplay: String
+    }
+    
+    class ServiceModel {
+        +id: Int
+        +name: String
+        +code: String
+        +description: String
+        +requiredDocuments: String
+        +processingDays: Int
+        +fee: Double
+        +departmentName: String
+        +fromJson(json: Map): ServiceModel
+    }
+    
+    class ComplaintModel {
+        +id: Int
+        +complaintNumber: String
+        +subject: String
+        +description: String
+        +status: String
+        +createdAt: DateTime
+        +photoPath: String
+        +fromJson(json: Map): ComplaintModel
+    }
+}
+
+' Relationships
+Database --> AuthController
+Database --> ApplicationController
+Database --> ServiceController
+Database --> ComplaintController
+Database --> AdminController
+Database --> DocumentController
+
+JWT --> AuthController
+JWT --> AuthMiddleware
+
+AuthMiddleware --> ApplicationController
+AuthMiddleware --> ComplaintController
+AuthMiddleware --> AdminController
+
+ApiClient --> AuthService
+ApiClient --> ApplicationService
+ApiClient --> ServiceService
+ApiClient --> ComplaintService
+
+AuthService --> UserModel
+ApplicationService --> ApplicationModel
+ServiceService --> ServiceModel
+ComplaintService --> ComplaintModel
+
+CertificateService --> ApplicationModel
+
+@enduml

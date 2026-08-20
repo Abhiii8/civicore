@@ -1,0 +1,200 @@
+@startuml CiviCore_Activity_Diagram
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam activity {
+    BackgroundColor #E3F2FD
+    BorderColor #1976D2
+    FontColor #000000
+}
+skinparam arrow {
+    Color #1976D2
+}
+
+title CiviCore - Application Processing Workflow
+
+start
+
+:User visits application;
+:Display login screen;
+
+if (User has account?) then (No)
+    :Show registration form;
+    :User enters details;
+    :Validate input;
+    if (Validation successful?) then (No)
+        :Show error message;
+        stop
+    else (Yes)
+        :Hash password (bcrypt);
+        :Create user account;
+        :Generate JWT token;
+        :Store token locally;
+    endif
+else (Yes)
+    :Show login form;
+    :User enters credentials;
+    :Validate credentials;
+    if (Credentials valid?) then (No)
+        :Show error message;
+        stop
+    else (Yes)
+        :Generate JWT token;
+        :Store token locally;
+    endif
+endif
+
+:Determine user role;
+
+if (User role?) then (Citizen)
+    :Show Citizen Dashboard;
+    :Display available services;
+    
+    if (User action?) then (Browse Services)
+        :Show services list;
+        :Allow search/filter;
+        if (User selects service?) then (Yes)
+            :Show service details;
+            :User clicks "Apply";
+            :Create application;
+            :Generate application_number;
+            :Set status = 'pending';
+            :Log application creation;
+            :Show success message;
+        endif
+    else (Upload Documents)
+        :Select application;
+        :Choose file;
+        :Validate file (type, size);
+        if (File valid?) then (No)
+            :Show error;
+        else (Yes)
+            :Upload to server;
+            :Save file path to database;
+            :Show success;
+        endif
+    else (Track Applications)
+        :Fetch user applications;
+        :Display applications list;
+        :Show status for each;
+        if (User selects application?) then (Yes)
+            :Fetch application details;
+            :Display timeline;
+            :Show documents;
+            if (Status = 'approved'?) then (Yes)
+                :Show download certificate option;
+                if (User downloads?) then (Yes)
+                    :Generate PDF certificate;
+                    :Download to device;
+                endif
+            endif
+        endif
+    else (Submit Complaint)
+        :Show complaint form;
+        :User enters details;
+        :User attaches photo (optional);
+        :Submit complaint;
+        :Generate complaint_number;
+        :Set status = 'open';
+        :Save to database;
+        :Show success;
+    endif
+    
+elseif (Officer) then
+    :Show Officer Dashboard;
+    :Fetch assigned applications;
+    :Display applications list;
+    
+    if (User action?) then (View Application)
+        :Select application;
+        :Fetch full details;
+        :Display application info;
+        :Show uploaded documents;
+        :Show application timeline;
+        
+        if (Officer decision?) then (Approve)
+            :Enter remarks;
+            :Update status = 'approved';
+            :Set approved_date = NOW();
+            :Generate certificate_path;
+            :Log approval action;
+            :Save to database;
+            :Show success message;
+        else (Reject)
+            :Enter rejection reason;
+            :Enter remarks;
+            :Update status = 'rejected';
+            :Set reviewed_date = NOW();
+            :Log rejection action;
+            :Save to database;
+            :Show success message;
+        endif
+    else (Manage Complaints)
+        :Fetch assigned complaints;
+        :Display complaints list;
+        if (Select complaint?) then (Yes)
+            :View complaint details;
+            :Update status;
+            :Add resolution notes;
+            :Save to database;
+        endif
+    endif
+    
+else (Admin)
+    :Show Admin Dashboard;
+    :Fetch statistics;
+    :Display charts and analytics;
+    
+    if (User action?) then (Manage Departments)
+        :Show departments list;
+        if (Create department?) then (Yes)
+            :Enter department details;
+            :Save to database;
+            :Log audit action;
+        else (Update department?) then (Yes)
+            :Modify details;
+            :Save to database;
+        endif
+    else (Manage Services)
+        :Show services list;
+        if (Create service?) then (Yes)
+            :Select department;
+            :Enter service details;
+            :Save to database;
+        else (Update service?) then (Yes)
+            :Modify details;
+            :Save to database;
+        endif
+    else (Manage Users)
+        :Show users list;
+        if (Create officer?) then (Yes)
+            :Enter officer details;
+            :Select department;
+            :Hash password;
+            :Save to database;
+            :Log audit action;
+        else (Update user?) then (Yes)
+            :Modify details;
+            :Save to database;
+        endif
+    else (Assign Applications)
+        :Show pending applications;
+        :Select application;
+        :Select officer;
+        :Assign to officer;
+        :Update status = 'under_review';
+        :Set reviewed_date = NOW();
+        :Log assignment;
+        :Save to database;
+    else (View Audit Logs)
+        :Fetch audit logs;
+        :Display logs with filters;
+    endif
+endif
+
+:User logs out;
+:Clear stored token;
+:Redirect to login;
+
+stop
+
+@enduml

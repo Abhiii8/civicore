@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../services/application_service.dart';
 import '../../models/application_model.dart';
 import '../../core/constants/app_constants.dart';
+import '../../utils/certificate_type_helper.dart';
 
 class ApplicationReviewScreen extends StatefulWidget {
   final int applicationId;
@@ -24,6 +25,9 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
   ApplicationModel? _application;
   bool _isLoading = true;
   bool _isProcessing = false;
+  String? _selectedCertificateType;
+  List<String> _certificateTypes = [];
+  final _certificateValueController = TextEditingController();
 
   @override
   void initState() {
@@ -35,6 +39,7 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
   void dispose() {
     _remarksController.dispose();
     _rejectionReasonController.dispose();
+    _certificateValueController.dispose();
     super.dispose();
   }
 
@@ -43,6 +48,21 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
     final application = await _applicationService.getApplication(widget.applicationId);
     setState(() {
       _application = application;
+      // Load certificate types if service requires it
+      if (application != null) {
+        _certificateTypes = CertificateTypeHelper.getCertificateTypes(
+          application.serviceCode,
+          application.serviceName,
+        );
+        // Pre-select if already approved with a type
+        if (application.certificateType != null) {
+          _selectedCertificateType = application.certificateType;
+        }
+        // Pre-fill value if already approved with a value
+        if (application.certificateValue != null) {
+          _certificateValueController.text = application.certificateValue!;
+        }
+      }
       _isLoading = false;
     });
   }
@@ -50,11 +70,63 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
   Future<void> _approveApplication() async {
     if (_application == null) return;
 
+    // Check if certificate type is required but not selected
+    if (CertificateTypeHelper.requiresTypeSelection(
+          _application!.serviceCode,
+          _application!.serviceName,
+        ) &&
+        (_selectedCertificateType == null || _selectedCertificateType!.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a certificate type before approving'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+    
+    // Check if value input is required
+    if (CertificateTypeHelper.requiresValueInput(
+          _application!.serviceCode,
+          _application!.serviceName,
+        )) {
+      final value = _certificateValueController.text.trim();
+      if (value.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Please enter ${CertificateTypeHelper.getValueLabel(_application!.serviceCode, _application!.serviceName).toLowerCase()}'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+      
+      // Validate value
+      final validationError = CertificateTypeHelper.validateValue(
+        _application!.serviceCode,
+        _application!.serviceName,
+        value,
+      );
+      if (validationError != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(validationError),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+    }
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Approve Application'),
-        content: const Text('Are you sure you want to approve this application?'),
+        content: Text(
+          _selectedCertificateType != null
+              ? 'Approve application with type: $_selectedCertificateType?'
+              : 'Are you sure you want to approve this application?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -77,6 +149,10 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
       remarks: _remarksController.text.trim().isEmpty 
           ? null 
           : _remarksController.text.trim(),
+      certificateType: _selectedCertificateType,
+      certificateValue: _certificateValueController.text.trim().isEmpty
+          ? null
+          : _certificateValueController.text.trim(),
     );
 
     setState(() => _isProcessing = false);
@@ -225,15 +301,80 @@ class _ApplicationReviewScreenState extends State<ApplicationReviewScreen> {
                             child: Column(
                               children: _application!.documents!.map((doc) {
                                 return ListTile(
-                                  leading: const Icon(Icons.description),
                                   title: Text(doc['document_name'] ?? 'Document'),
-                                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                                   onTap: () {
                                     // Handle document view
                                   },
                                 );
                               }).toList(),
                             ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      
+                      // Certificate Type Selection (if service requires it)
+                      if (_certificateTypes.isNotEmpty && 
+                          CertificateTypeHelper.requiresTypeSelection(
+                            _application!.serviceCode,
+                            _application!.serviceName,
+                          )) ...[
+                        Text(
+                          'Certificate Type',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: DropdownButton<String>(
+                              value: _selectedCertificateType,
+                              hint: const Text('Select certificate type'),
+                              isExpanded: true,
+                              underline: const SizedBox(),
+                              items: _certificateTypes.map((type) {
+                                return DropdownMenuItem<String>(
+                                  value: type,
+                                  child: Text(type),
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  _selectedCertificateType = newValue;
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      
+                      // Certificate Value Input (if service requires it)
+                      if (CertificateTypeHelper.requiresValueInput(
+                            _application!.serviceCode,
+                            _application!.serviceName,
+                          )) ...[
+                        Text(
+                          CertificateTypeHelper.getValueLabel(
+                            _application!.serviceCode,
+                            _application!.serviceName,
+                          ),
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _certificateValueController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            hintText: CertificateTypeHelper.getValuePlaceholder(
+                              _application!.serviceCode,
+                              _application!.serviceName,
+                            ),
+                            border: const OutlineInputBorder(),
                           ),
                         ),
                         const SizedBox(height: 16),

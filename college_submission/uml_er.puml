@@ -1,0 +1,181 @@
+@startuml CiviCore_ER_Diagram
+!theme plain
+skinparam linetype ortho
+skinparam backgroundColor #FFFFFF
+skinparam entity {
+    BackgroundColor #E3F2FD
+    BorderColor #1976D2
+}
+skinparam relationship {
+    ArrowColor #1976D2
+}
+
+title CiviCore E-Governance Platform - Entity Relationship Diagram
+
+entity "roles" {
+    * id : INT <<PK>>
+    --
+    * name : VARCHAR(50) <<UNIQUE>>
+    description : TEXT
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "departments" {
+    * id : INT <<PK>>
+    --
+    * name : VARCHAR(100)
+    code : VARCHAR(20) <<UNIQUE>>
+    description : TEXT
+    * is_active : BOOLEAN
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "users" {
+    * id : INT <<PK>>
+    --
+    * role_id : INT <<FK>>
+    department_id : INT <<FK>>
+    * email : VARCHAR(100) <<UNIQUE>>
+    * password : VARCHAR(255)
+    * full_name : VARCHAR(100)
+    phone : VARCHAR(20)
+    aadhaar_number : VARCHAR(12) <<UNIQUE>>
+    address : TEXT
+    date_of_birth : DATE
+    * is_active : BOOLEAN
+    email_verified : BOOLEAN
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "services" {
+    * id : INT <<PK>>
+    --
+    * department_id : INT <<FK>>
+    * name : VARCHAR(100)
+    code : VARCHAR(50) <<UNIQUE>>
+    description : TEXT
+    required_documents : TEXT
+    processing_days : INT
+    fee : DECIMAL(10,2)
+    * is_active : BOOLEAN
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "applications" {
+    * id : INT <<PK>>
+    --
+    * application_number : VARCHAR(50) <<UNIQUE>>
+    * citizen_id : INT <<FK>>
+    * service_id : INT <<FK>>
+    officer_id : INT <<FK>>
+    * status : ENUM
+    remarks : TEXT
+    rejection_reason : TEXT
+    * applied_date : TIMESTAMP
+    reviewed_date : TIMESTAMP
+    approved_date : TIMESTAMP
+    certificate_path : VARCHAR(255)
+    created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+}
+
+entity "application_documents" {
+    * id : INT <<PK>>
+    --
+    * application_id : INT <<FK>>
+    * document_name : VARCHAR(255)
+    * file_path : VARCHAR(255)
+    file_type : VARCHAR(50)
+    file_size : INT
+    * uploaded_at : TIMESTAMP
+}
+
+entity "application_logs" {
+    * id : INT <<PK>>
+    --
+    * application_id : INT <<FK>>
+    user_id : INT <<FK>>
+    * action : VARCHAR(100)
+    old_status : VARCHAR(50)
+    new_status : VARCHAR(50)
+    remarks : TEXT
+    * created_at : TIMESTAMP
+}
+
+entity "complaints" {
+    * id : INT <<PK>>
+    --
+    * complaint_number : VARCHAR(50) <<UNIQUE>>
+    * citizen_id : INT <<FK>>
+    * subject : VARCHAR(255)
+    * description : TEXT
+    * status : ENUM
+    assigned_to : INT <<FK>>
+    resolution : TEXT
+    photo_path : VARCHAR(255)
+    * created_at : TIMESTAMP
+    updated_at : TIMESTAMP
+    resolved_at : TIMESTAMP
+}
+
+entity "audit_logs" {
+    * id : INT <<PK>>
+    --
+    user_id : INT <<FK>>
+    * action : VARCHAR(100)
+    entity_type : VARCHAR(50)
+    entity_id : INT
+    details : TEXT
+    ip_address : VARCHAR(45)
+    user_agent : TEXT
+    * created_at : TIMESTAMP
+}
+
+' Relationships
+roles ||--o{ users : "has"
+departments ||--o{ users : "employs"
+departments ||--o{ services : "offers"
+users ||--o{ applications : "submits (citizen)"
+users ||--o{ applications : "reviews (officer)"
+services ||--o{ applications : "receives"
+applications ||--o{ application_documents : "contains"
+applications ||--o{ application_logs : "tracks"
+users ||--o{ complaints : "submits (citizen)"
+users ||--o{ complaints : "handles (officer)"
+users ||--o{ audit_logs : "performs"
+
+note right of roles
+    Roles:
+    - citizen (id=1)
+    - officer (id=2)
+    - admin (id=3)
+end note
+
+note right of applications
+    Status Values:
+    - pending
+    - under_review
+    - approved
+    - rejected
+end note
+
+note right of complaints
+    Status Values:
+    - open
+    - in_progress
+    - resolved
+    - closed
+end note
+
+note right of users
+    User Types:
+    - Citizens: no department
+    - Officers: assigned to department
+    - Admins: full access
+end note
+
+@enduml

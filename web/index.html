@@ -14,7 +14,7 @@
     This is a placeholder for base href that will be replaced by the value of
     the `--base-href` argument provided to `flutter build`.
   -->
-  <base href="$FLUTTER_BASE_HREF">
+  <base href="/">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
@@ -31,8 +31,20 @@
 
   <title>civicore</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Required by pdfx on web -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    if (typeof pdfjsLib !== 'undefined') {
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    } else {
+      console.warn("pdfjsLib is undefined. PDF.js might have failed to load.");
+    }
+  </script>
 </head>
 <body>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
