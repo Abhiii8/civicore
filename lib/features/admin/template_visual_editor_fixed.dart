@@ -5,6 +5,8 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'template_coordinate_helper.dart';
 
 class TemplateVisualEditorFixed extends StatefulWidget {
   final File templateFile;
@@ -151,10 +153,9 @@ class _TemplateVisualEditorFixedState extends State<TemplateVisualEditorFixed> {
                   children: [
                     // Template Image - Full Screen
                     Center(
-                      child: Image.file(
-                        widget.templateFile,
-                        fit: BoxFit.contain,
-                      ),
+                      child: kIsWeb 
+                          ? Image.network(widget.templateFile.path, fit: BoxFit.contain)
+                          : Image.file(widget.templateFile, fit: BoxFit.contain),
                     ),
                     // Field Position Indicators
                     ..._fields.entries.map((entry) {

@@ -177,6 +177,11 @@ class ApiClient {
             final responseData = Map<String, dynamic>.from(error.response!.data);
             message = responseData['message']?.toString() ?? 'An error occurred';
             
+            // If backend provides detailed error (like PHP exceptions), append it
+            if (responseData['error'] != null) {
+              message = '$message: ${responseData['error']}';
+            }
+            
             // Provide specific messages for common errors
             if (error.response!.statusCode == 401) {
               message = 'Unauthorized. Please login again.';

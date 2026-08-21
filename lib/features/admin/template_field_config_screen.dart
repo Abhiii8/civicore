@@ -3,6 +3,7 @@
 /// Visual editor for configuring text field positions on certificate templates
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:io';
 
 class TemplateFieldConfigScreen extends StatefulWidget {
@@ -50,10 +51,15 @@ class _TemplateFieldConfigScreenState extends State<TemplateFieldConfigScreen> {
             child: Container(
               color: Colors.grey[200],
               child: Center(
-                child: Image.file(
-                  widget.templateFile,
-                  fit: BoxFit.contain,
-                ),
+                child: kIsWeb
+                    ? Image.network(
+                        widget.templateFile.path,
+                        fit: BoxFit.contain,
+                      )
+                    : Image.file(
+                        widget.templateFile,
+                        fit: BoxFit.contain,
+                      ),
               ),
             ),
           ),

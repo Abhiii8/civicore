@@ -40,6 +40,8 @@ class ComplaintService {
         formData,
       );
       return response.data;
+    } on DioException catch (e) {
+      return {'success': false, 'message': e.message ?? e.toString()};
     } catch (e) {
       return {'success': false, 'message': e.toString()};
     }

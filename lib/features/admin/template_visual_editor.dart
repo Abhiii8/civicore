@@ -5,6 +5,7 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'template_coordinate_helper.dart';
 
 class TemplateVisualEditor extends StatefulWidget {
@@ -183,32 +184,59 @@ class _TemplateVisualEditorState extends State<TemplateVisualEditor> {
                         // Template Image - Full Screen with proper sizing
                         Positioned.fill(
                           child: Center(
-                            child: Image.file(
-                              widget.templateFile,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  padding: const EdgeInsets.all(20),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        'Error loading image',
-                                        style: TextStyle(color: Colors.red[700], fontSize: 16),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        widget.templateFile.path,
-                                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
+                            child: kIsWeb
+                                ? Image.network(
+                                    widget.templateFile.path,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        padding: const EdgeInsets.all(20),
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                                            const SizedBox(height: 16),
+                                            Text(
+                                              'Error loading image',
+                                              style: TextStyle(color: Colors.red[700], fontSize: 16),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              widget.templateFile.path,
+                                              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : Image.file(
+                                    widget.templateFile,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        padding: const EdgeInsets.all(20),
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                                            const SizedBox(height: 16),
+                                            Text(
+                                              'Error loading image',
+                                              style: TextStyle(color: Colors.red[700], fontSize: 16),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              widget.templateFile.path,
+                                              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
                                   ),
-                                );
-                              },
-                            ),
                           ),
                         ),
                     // Field Position Indicators

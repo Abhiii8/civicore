@@ -5,6 +5,7 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../services/auth_service.dart';
 import '../../services/user_service.dart';
@@ -259,10 +260,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     child: ClipOval(
                       child: _profileImage != null
-                          ? Image.file(
-                              _profileImage!,
-                              fit: BoxFit.cover,
-                            )
+                          ? (kIsWeb
+                              ? Image.network(_profileImage!.path, fit: BoxFit.cover)
+                              : Image.file(_profileImage!, fit: BoxFit.cover))
                           : _profileImageUrl != null && _profileImageUrl!.isNotEmpty
                               ? Image.network(
                                   'http://10.0.2.2/civicore/backend/$_profileImageUrl',

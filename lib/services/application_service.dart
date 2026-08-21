@@ -53,6 +53,8 @@ class ApplicationService {
         };
       }
       return {'success': false, 'message': 'Network error: ${e.message}'};
+    } on DioException catch (e) {
+      return {'success': false, 'message': e.message ?? e.toString()};
     } catch (e) {
       return {'success': false, 'message': e.toString()};
     }
@@ -158,6 +160,8 @@ class ApplicationService {
         },
       );
       return response.data;
+    } on DioException catch (e) {
+      return {'success': false, 'message': e.message ?? e.toString()};
     } catch (e) {
       return {'success': false, 'message': e.toString()};
     }
@@ -174,6 +178,8 @@ class ApplicationService {
         },
       );
       return response.data;
+    } on DioException catch (e) {
+      return {'success': false, 'message': e.message ?? e.toString()};
     } catch (e) {
       return {'success': false, 'message': e.toString()};
     }
