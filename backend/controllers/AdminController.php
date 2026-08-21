@@ -75,9 +75,9 @@ class AdminController {
         echo json_encode([
             'success' => true,
             'data' => [
-                'applications' => $applicationStats,
-                'users' => $userStats,
-                'complaints' => $complaintStats,
+                'applications' => empty($applicationStats) ? new stdClass() : $applicationStats,
+                'users' => empty($userStats) ? new stdClass() : $userStats,
+                'complaints' => empty($complaintStats) ? new stdClass() : $complaintStats,
                 'recent_applications' => $recentApplications
             ]
         ]);

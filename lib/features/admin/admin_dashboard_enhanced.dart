@@ -134,7 +134,7 @@ class _AdminDashboardEnhancedState extends State<AdminDashboardEnhanced> {
                     const SizedBox(height: 24),
 
                     // Application Statistics Chart
-                    if (_dashboardData['applications'] != null)
+                    if (_dashboardData['applications'] is Map && (_dashboardData['applications'] as Map).isNotEmpty)
                       StatisticsChart(
                         title: 'Applications by Status',
                         data: Map<String, int>.from(
@@ -145,7 +145,7 @@ class _AdminDashboardEnhancedState extends State<AdminDashboardEnhanced> {
                     const SizedBox(height: 24),
 
                     // User Statistics Chart
-                    if (_dashboardData['users'] != null)
+                    if (_dashboardData['users'] is Map && (_dashboardData['users'] as Map).isNotEmpty)
                       StatisticsChart(
                         title: 'Users by Role',
                         data: Map<String, int>.from(
@@ -156,7 +156,7 @@ class _AdminDashboardEnhancedState extends State<AdminDashboardEnhanced> {
                     const SizedBox(height: 24),
 
                     // Complaint Statistics Chart
-                    if (_dashboardData['complaints'] != null)
+                    if (_dashboardData['complaints'] is Map && (_dashboardData['complaints'] as Map).isNotEmpty)
                       StatisticsChart(
                         title: 'Complaints by Status',
                         data: Map<String, int>.from(
@@ -251,9 +251,9 @@ class _QuickStatsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final applications = data['applications'] as Map<String, dynamic>? ?? {};
-    final users = data['users'] as Map<String, dynamic>? ?? {};
-    final complaints = data['complaints'] as Map<String, dynamic>? ?? {};
+    final applications = (data['applications'] is Map) ? data['applications'] as Map : {};
+    final users = (data['users'] is Map) ? data['users'] as Map : {};
+    final complaints = (data['complaints'] is Map) ? data['complaints'] as Map : {};
 
     final totalApplications = applications.values.fold<int>(
       0,
